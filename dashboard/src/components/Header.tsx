@@ -1,0 +1,5 @@
+import { ChefHat, CircleDot, Radio } from 'lucide-react'
+
+export function Header() {
+  return <header className="flex flex-col gap-6 border-b border-[#493537] pb-8 sm:flex-row sm:items-end sm:justify-between"><div><div className="mb-4 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#d9a441]"><ChefHat size={14} className="text-[#d9a441]" /><span>Laboratório de sistemas</span></div><h1 className="text-4xl font-black tracking-[-0.04em] text-[#f5f0e8] sm:text-6xl">Concorrência<span className="text-[#c62828]">.</span></h1><p className="mt-3 max-w-xl text-base leading-7 text-[#b9adad]">Observe como a fila compartilhada distribui trabalho e onde o paralelismo deixa de comprar tempo.</p></div><div className="flex items-center gap-3 self-start rounded-full border border-[#526552] bg-[#6f8f72]/10 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#b4c3b0] sm:self-auto"><Radio size={13} /><span>API Java online</span><CircleDot size={12} /></div></header>
+}

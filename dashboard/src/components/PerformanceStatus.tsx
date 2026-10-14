@@ -1,0 +1,7 @@
+import { Gauge, TrendingDown, Zap } from 'lucide-react'
+import type { SimulationResult } from '../types/simulation'
+
+export function PerformanceStatus({ result }: { result: SimulationResult }) {
+  const isNearLimit = result.diferencaPercentual <= 5
+  return <section className={`panel p-6 ${isNearLimit ? 'border-[#526552]' : 'border-[#8f5a55]'}`}><div className="flex items-start justify-between gap-4"><div><div className="eyebrow"><Gauge size={14} /> Análise de desempenho</div><h2 className="mt-3 text-xl font-bold text-[#f5f0e8]">{isNearLimit ? 'Próximo do limite teórico' : 'Ainda há ganho disponível'}</h2></div>{isNearLimit ? <Zap className="text-[#6f8f72]" size={22} /> : <TrendingDown className="text-[#d9a441]" size={22} />}</div><div className="mt-6 grid grid-cols-3 gap-3 border-t border-[#493537] pt-5"><div><span className="metric-label">Real</span><strong className="metric-value">{result.duracaoSegundos.toFixed(2)}s</strong></div><div><span className="metric-label">Mínimo</span><strong className="metric-value">{result.tempoMinimoTeorico.toFixed(2)}s</strong></div><div><span className="metric-label">Diferença</span><strong className="metric-value">{result.diferencaPercentual.toFixed(2)}%</strong></div></div><p className="mt-5 text-sm leading-6 text-[#b9adad]">A margem de análise é de 5%. Abaixo dela, novos cozinheiros tendem a produzir pouco ou nenhum ganho significativo.</p></section>
+}

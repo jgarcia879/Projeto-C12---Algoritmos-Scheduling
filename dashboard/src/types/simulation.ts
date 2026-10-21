@@ -37,4 +37,6 @@ export interface SimulationResult {
   tempoMinimoTeorico: number
   diferencaSegundos: number
   diferencaPercentual: number
+  algoritmo: 'FCFS' | 'SJF' | 'PS'
+  chapaCompartilhada: boolean
 }

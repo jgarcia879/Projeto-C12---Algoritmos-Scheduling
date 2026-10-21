@@ -24,12 +24,25 @@ public class SimulacaoApiServer {
 
     private static final Pattern ALGORITMO_PATTERN = Pattern.compile("\"algoritmo\"\\s*:\\s*\"(FCFS|SJF|PS)\"");
     private static final Pattern CHAPA_PATTERN = Pattern.compile("\"chapaCompartilhada\"\\s*:\\s*(true|false)");
+    private static final Pattern ESCALA_TEMPO_PATTERN = Pattern.compile("\"escalaTempo\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)");
 
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORTA), 0);
         server.createContext("/api/simulacoes", SimulacaoApiServer::atenderSimulacao);
+        server.createContext("/api/status", SimulacaoApiServer::atenderStatus);
         server.start();
         System.out.println("API de simulacao real iniciada em http://localhost:" + PORTA);
+    }
+
+    private static void atenderStatus(HttpExchange exchange) throws IOException {
+        adicionarCors(exchange.getResponseHeaders());
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            responder(exchange, 204, "");
+        } else if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            responderJson(exchange, 200, "{\"escalaExpressa\":true}");
+        } else {
+            responderJson(exchange, 405, "{\"erro\":\"Use GET neste endpoint.\"}");
+        }
     }
 
     private static void atenderSimulacao(HttpExchange exchange) throws IOException {
@@ -57,12 +70,14 @@ public class SimulacaoApiServer {
             Matcher chapa = CHAPA_PATTERN.matcher(corpo);
             String algoritmo = alg.find() ? alg.group(1) : "FCFS";
             boolean compartilhar = chapa.find() && Boolean.parseBoolean(chapa.group(1));
+            Matcher escala = ESCALA_TEMPO_PATTERN.matcher(corpo);
+            double escalaTempo = escala.find() ? Double.parseDouble(escala.group(1)) : 1.0;
             List<Pedido> pedidos = PedidosPadrao.criar();
                 exchange.getResponseHeaders().set("Content-Type", "application/x-ndjson; charset=UTF-8");
                 exchange.sendResponseHeaders(200, 0);
                 try (OutputStream output = exchange.getResponseBody()) {
                 Object monitor = new Object();
-                ResultadoSimulacao resultado = new Simulacao(pedidos, quantidadeCozinheiros, algoritmo, compartilhar)
+                ResultadoSimulacao resultado = new Simulacao(pedidos, quantidadeCozinheiros, algoritmo, compartilhar, escalaTempo)
                     .executar(evento -> escreverEvento(output, monitor, evento));
                 escreverLinha(output, monitor,
                     "{\"tipo\":\"SIMULACAO_CONCLUIDA\",\"resultado\":"
@@ -81,11 +96,11 @@ public class SimulacaoApiServer {
     private static String paraJson(ResultadoSimulacao resultado) {
         return String.format(Locale.US,
                 "{\"quantidadeCozinheiros\":%d,\"quantidadePedidos\":%d,"
-                        + "\"pedidosProcessados\":%d,\"duracaoSegundos\":%.4f,"
+                        + "\"pedidosProcessados\":%d,\"algoritmo\":\"%s\",\"duracaoSegundos\":%.4f,"
                         + "\"tempoMinimoTeorico\":%.4f,\"diferencaSegundos\":%.4f,"
                         + "\"diferencaPercentual\":%.4f}",
                 resultado.getQuantidadeCozinheiros(), resultado.getQuantidadePedidos(),
-                resultado.getPedidosProcessados(), resultado.getDuracaoSegundos(),
+                resultado.getPedidosProcessados(), resultado.getAlgoritmo(), resultado.getDuracaoSegundos(),
                 resultado.getTempoMinimoTeoricoSegundos(), resultado.getDiferencaSegundos(),
                 resultado.getDiferencaPercentual());
     }

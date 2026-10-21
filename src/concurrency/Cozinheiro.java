@@ -12,14 +12,22 @@ public class Cozinheiro implements Runnable {
     private final BlockingQueue<Pedido> filaPedidos;
     private final AtomicInteger pedidosProcessados;
     private final Consumer<EventoSimulacao> observador;
+    private final double escalaTempo;
 
     public Cozinheiro(String nome, BlockingQueue<Pedido> filaPedidos,
             AtomicInteger pedidosProcessados, Consumer<EventoSimulacao> observador, java.util.concurrent.Semaphore chapa) {
+        this(nome, filaPedidos, pedidosProcessados, observador, chapa, 1.0);
+    }
+
+    public Cozinheiro(String nome, BlockingQueue<Pedido> filaPedidos,
+            AtomicInteger pedidosProcessados, Consumer<EventoSimulacao> observador,
+            java.util.concurrent.Semaphore chapa, double escalaTempo) {
         this.chapa = chapa;
         this.nome = nome;
         this.filaPedidos = filaPedidos;
         this.pedidosProcessados = pedidosProcessados;
         this.observador = observador;
+        this.escalaTempo = escalaTempo;
     }
 
     @Override
@@ -34,7 +42,7 @@ public class Cozinheiro implements Runnable {
                     adquiriu = true;
                 }
                 publicar(EventoSimulacao.criar("PEDIDO_INICIADO", nome, pedido));
-                PedidoRunnable preparo = new PedidoRunnable(pedido, nome);
+                PedidoRunnable preparo = new PedidoRunnable(pedido, nome, escalaTempo);
                 preparo.run();
                 if (preparo.isConcluido()) {
                     pedidosProcessados.incrementAndGet();

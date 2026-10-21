@@ -18,16 +18,24 @@ public class Simulacao {
     private final int quantidadeCozinheiros;
     private final String algoritmo;
     private final boolean chapaCompartilhada;
+    private final double escalaTempo;
 
     public Simulacao(List<Pedido> pedidos, int quantidadeCozinheiros) {
         this(pedidos, quantidadeCozinheiros, "FCFS", false);
     }
 
     public Simulacao(List<Pedido> pedidos, int quantidadeCozinheiros, String algoritmo, boolean chapaCompartilhada) {
+        this(pedidos, quantidadeCozinheiros, algoritmo, chapaCompartilhada, 1.0);
+    }
+
+    public Simulacao(List<Pedido> pedidos, int quantidadeCozinheiros, String algoritmo,
+            boolean chapaCompartilhada, double escalaTempo) {
         if (quantidadeCozinheiros < 1 || quantidadeCozinheiros > 20) throw new IllegalArgumentException("Quantidade de cozinheiros invalida.");
         if (!java.util.Arrays.asList("FCFS", "SJF", "PS").contains(algoritmo)) throw new IllegalArgumentException("Algoritmo invalido.");
+        if (!Double.isFinite(escalaTempo) || escalaTempo <= 0 || escalaTempo > 1) throw new IllegalArgumentException("Escala de tempo invalida.");
         this.algoritmo = algoritmo;
         this.chapaCompartilhada = chapaCompartilhada;
+        this.escalaTempo = escalaTempo;
         this.pedidos = new ArrayList<>(pedidos);
         if ("SJF".equals(algoritmo)) this.pedidos.sort(java.util.Comparator.comparingInt(Pedido::getTempoPreparo).thenComparingInt(Pedido::getId));
         if ("PS".equals(algoritmo)) this.pedidos.sort(java.util.Comparator.comparingInt(Pedido::getPrioridade).thenComparingInt(Pedido::getId));
@@ -56,7 +64,7 @@ public class Simulacao {
         for (int i = 1; i <= quantidadeCozinheiros; i++) {
             Thread thread = new Thread(
                     new Cozinheiro("COZINHEIRO " + i, filaPedidos,
-                            pedidosProcessados, observador, chapa),
+                            pedidosProcessados, observador, chapa, escalaTempo),
                     "cozinheiro-" + i);
             threads.add(thread);
         }
@@ -72,8 +80,8 @@ public class Simulacao {
                 .orElse(0);
 
         ResultadoSimulacao resultado = new ResultadoSimulacao(quantidadeCozinheiros, pedidos.size(),
-                pedidosProcessados.get(), instanteInicial, instanteFinal,
-                maiorTempoPreparo, MARGEM_LIMITE_DESEMPENHO);
+                pedidosProcessados.get(), algoritmo, instanteInicial, instanteFinal,
+                maiorTempoPreparo, MARGEM_LIMITE_DESEMPENHO, escalaTempo);
         return resultado;
         }
 

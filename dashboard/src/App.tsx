@@ -6,8 +6,10 @@ import { MetricCard } from './components/MetricCard'
 import { OrderList } from './components/OrderList'
 import { PerformanceStatus } from './components/PerformanceStatus'
 import { SimulationChart } from './components/SimulationChart'
+import { AlgorithmComparison } from './components/AlgorithmComparison'
 import { SimulationControls } from './components/SimulationControls'
 import { SimulationHistory } from './components/SimulationHistory'
+import { ExpressSimulationLoading } from './components/ExpressSimulationLoading'
 import { orders } from './services/simulationApi'
 import { useSimulation } from './hooks/useSimulation'
 
@@ -16,7 +18,7 @@ function App() {
   const [algorithm, setAlgorithm] = useState("FCFS")
   const [sharedGrill, setSharedGrill] = useState(false)
   const [now, setNow] = useState(() => Date.now())
-  const { status, result, history, workers, liveOrders, errorMessage, execute } = useSimulation()
+  const { status, result, history, workers, liveOrders, errorMessage, expressProgress, execute, executeExpress } = useSimulation()
   const isLoading = status === 'loading'
 
   useEffect(() => {
@@ -40,6 +42,7 @@ function App() {
               loading={isLoading}
               onChange={setCooks}
               onRun={() => void execute(cooks, algorithm, sharedGrill)}
+              onExpress={() => void executeExpress(algorithm)}
             />
 
             <section className="panel p-6 sm:p-8">
@@ -90,10 +93,13 @@ function App() {
           </div>
         </div>
 
+        <AlgorithmComparison history={history} />
+
         <footer className="mt-10 border-t border-[#493537] pt-5 text-xs text-[#847678]">
           Fonte dos resultados: Simulacao.java via API HTTP Java · nenhuma medição mockada
         </footer>
       </div>
+      {expressProgress && <ExpressSimulationLoading progress={expressProgress} />}
     </main>
   )
 }

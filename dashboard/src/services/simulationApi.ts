@@ -15,16 +15,35 @@ export const orders: Order[] = [
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 
+export async function ensureExpressSupport(): Promise<void> {
+  let response: Response
+  try {
+    response = await fetch(`${API_URL}/api/status`)
+  } catch {
+    throw new Error('Não foi possível confirmar o suporte express. Reinicie o servidor Java atualizado na porta 8080 e tente novamente.')
+  }
+
+  if (!response.ok) {
+    throw new Error('Reinicie o servidor Java para habilitar a escala de tempo da simulação express.')
+  }
+
+  const status = await response.json() as { escalaExpressa?: boolean }
+  if (!status.escalaExpressa) {
+    throw new Error('Reinicie o servidor Java para habilitar a escala de tempo da simulação express.')
+  }
+}
+
 export async function runSimulation(
   cooks: number,
   onEvent: (event: SimulationEvent) => void,
   algorithm: string = "FCFS",
   sharedGrill: boolean = false,
+  timeScale: number = 1,
 ): Promise<SimulationResult> {
   const response = await fetch(`${API_URL}/api/simulacoes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ quantidadeCozinheiros: cooks, algoritmo: algorithm, chapaCompartilhada: sharedGrill }),
+    body: JSON.stringify({ quantidadeCozinheiros: cooks, algoritmo: algorithm, chapaCompartilhada: sharedGrill, escalaTempo: timeScale }),
   })
 
   if (!response.ok) {

@@ -9,17 +9,28 @@ public class ResultadoSimulacao {
     private final long instanteFinal;
     private final double maiorTempoPreparo;
     private final double margemLimiteDesempenho;
+    private final long esperaTotalNanos;
 
     public ResultadoSimulacao(int quantidadeCozinheiros, int quantidadePedidos,
             int pedidosProcessados, String algoritmo, long instanteInicial, long instanteFinal,
             int maiorTempoPreparo, double margemLimiteDesempenho) {
         this(quantidadeCozinheiros, quantidadePedidos, pedidosProcessados, algoritmo,
-            instanteInicial, instanteFinal, maiorTempoPreparo, margemLimiteDesempenho, 1.0);
+            instanteInicial, instanteFinal, maiorTempoPreparo, margemLimiteDesempenho,
+            1.0, 0L);
         }
 
         public ResultadoSimulacao(int quantidadeCozinheiros, int quantidadePedidos,
             int pedidosProcessados, String algoritmo, long instanteInicial, long instanteFinal,
             int maiorTempoPreparo, double margemLimiteDesempenho, double escalaTempo) {
+        this(quantidadeCozinheiros, quantidadePedidos, pedidosProcessados, algoritmo,
+                instanteInicial, instanteFinal, maiorTempoPreparo, margemLimiteDesempenho,
+                escalaTempo, 0L);
+    }
+
+    public ResultadoSimulacao(int quantidadeCozinheiros, int quantidadePedidos,
+            int pedidosProcessados, String algoritmo, long instanteInicial, long instanteFinal,
+            int maiorTempoPreparo, double margemLimiteDesempenho, double escalaTempo,
+            long esperaTotalNanos) {
         this.quantidadeCozinheiros = quantidadeCozinheiros;
         this.quantidadePedidos = quantidadePedidos;
         this.pedidosProcessados = pedidosProcessados;
@@ -28,6 +39,7 @@ public class ResultadoSimulacao {
         this.instanteFinal = instanteFinal;
         this.maiorTempoPreparo = maiorTempoPreparo * escalaTempo;
         this.margemLimiteDesempenho = margemLimiteDesempenho;
+        this.esperaTotalNanos = esperaTotalNanos;
     }
 
     public int getQuantidadeCozinheiros() { return quantidadeCozinheiros; }
@@ -38,6 +50,10 @@ public class ResultadoSimulacao {
     public long getInstanteFinal() { return instanteFinal; }
     public long getDuracaoNanos() { return instanteFinal - instanteInicial; }
     public double getDuracaoSegundos() { return getDuracaoNanos() / 1_000_000_000.0; }
+    public double getEsperaTotalSegundos() { return esperaTotalNanos / 1_000_000_000.0; }
+    public double getEsperaMediaSegundos() {
+        return pedidosProcessados == 0 ? 0.0 : getEsperaTotalSegundos() / pedidosProcessados;
+    }
     public double getTempoMinimoTeoricoSegundos() { return maiorTempoPreparo; }
     public double getDiferencaSegundos() {
         return getDuracaoSegundos() - getTempoMinimoTeoricoSegundos();

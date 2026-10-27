@@ -1,120 +1,137 @@
-# Simulador de Concorrencia
+# Projeto C12 — Algoritmos de Scheduling
 
-Projeto que simula o processamento de pedidos por diferentes quantidades de cozinheiros e exibe os resultados em um dashboard web.
+Projeto de simulação de concorrência para analisar o processamento de pedidos por cozinheiros com diferentes algoritmos de escalonamento. A aplicação possui um backend em Java que executa a simulação real e um dashboard em React/TypeScript para visualizar os resultados em tempo real.
 
-## 1. Pre-requisitos
+## Visão geral
 
-Instale os seguintes programas:
+- Backend Java: executa a simulação real em threads, calcula tempos e expõe uma API HTTP em `http://localhost:8080`
+- Frontend React: mostra filas, métricas, histórico e comparação entre cenários
+- Algoritmos suportados: `FCFS`, `SJF` e `PS`
+- Recurso extra: chapa compartilhada com semáforo opcional para serializar o preparo em alguns cenários
 
-- Java JDK 17 ou superior
-- Node.js 18 ou superior
-- npm, que ja vem incluido com o Node.js
+## Requisitos
 
-Confira se as instalacoes funcionam. No PowerShell do Windows, use `npm.cmd` caso `npm` seja bloqueado pela politica de execucao:
+- Java JDK 17+
+- Node.js 18+
+- npm (vem junto com o Node.js)
+
+Verifique se tudo está instalado:
 
 ```powershell
 java -version
 javac -version
-node.exe --version
-npm.cmd --version
+node --version
+npm --version
 ```
 
-## 2. Abra a pasta do projeto
+> No Windows, se `npm` ficar bloqueado no PowerShell, use `npm.cmd` em vez de `npm`.
 
-Abra a pasta `repo-projeto-c12` no VS Code ou no explorador de arquivos.
+## Estrutura do projeto
 
-No PowerShell, entre na pasta com:
-
-```powershell
-Set-Location "C:\caminho\para\repo-projeto-c12"
+```text
+Projeto-C12---Algoritmos-Scheduling/
+├── README.md
+├── src/
+│   ├── Main.java
+│   ├── concurrency/
+│   ├── model/
+│   ├── server/
+│   └── simulation/
+├── dashboard/
+│   ├── package.json
+│   ├── src/
+│   └── vite.config.ts
+├── out/
+└── Projeto-C12.iml
 ```
 
-Substitua o caminho pelo local onde o projeto foi salvo.
+## Como rodar
 
-## 3. Prepare e inicie a API Java
+### 1) Inicie a API Java
 
-Abra um terminal na raiz do projeto e execute os comandos abaixo. Eles compilam os arquivos Java na pasta `out` e iniciam a API na porta `8080`:
+Abra um terminal na raiz do projeto e execute:
 
 ```powershell
-$sources = Get-ChildItem -Path src -Recurse -Filter '*.java' | ForEach-Object FullName
+Set-Location "C:\caminho\para\Projeto-C12---Algoritmos-Scheduling"
+
+$sources = Get-ChildItem -Path src -Recurse -Filter '*.java' | ForEach-Object { $_.FullName }
 New-Item -ItemType Directory -Force -Path out | Out-Null
-javac -d out $sources
+javac -encoding UTF-8 -d out $sources
 java -cp out server.SimulacaoApiServer
 ```
 
-Deixe esse terminal aberto. A mensagem esperada e semelhante a:
+Se tudo funcionar, a API deve iniciar com a mensagem:
 
 ```text
 API de simulacao real iniciada em http://localhost:8080
 ```
 
-## 4. Instale e inicie o dashboard
+### 2) Instale e rode o dashboard
 
-Abra um segundo terminal. Entre na pasta `dashboard`:
+Abra um segundo terminal e execute:
 
 ```powershell
-Set-Location "C:\caminho\para\repo-projeto-c12\dashboard"
-npm.cmd install
-npm.cmd run dev
+Set-Location "C:\caminho\para\Projeto-C12---Algoritmos-Scheduling\dashboard"
+npm install
+npm run dev
 ```
 
-O Vite mostrara um endereco parecido com:
+Após isso, o Vite deve mostrar um endereço como:
 
 ```text
 http://localhost:5173/
 ```
 
-Abra esse endereco no navegador. Mantenha os dois terminais abertos enquanto estiver usando o sistema.
+Abra esse endereço no navegador para usar a interface.
 
-## 5. Como usar
+## Como usar a aplicação
 
-1. Abra o dashboard no navegador.
-2. Escolha a quantidade de cozinheiros.
-3. Execute a simulacao.
-4. Observe o tempo de processamento, a comparacao com o tempo teorico e o historico das simulacoes.
+1. Escolha a quantidade de cozinheiros.
+2. Selecione o algoritmo de escalonamento.
+3. Opcionalmente habilite a chapa compartilhada.
+4. Execute a simulação.
+5. Observe as métricas, o histórico e o comparativo de desempenho.
 
-Cada simulacao usa a lista padrao de 20 pedidos definida no backend.
+Cada execução usa a lista padrão de pedidos definida no backend.
 
-## 6. Teste rapido da API (opcional)
+## Teste rápido da API
 
-Com a API Java em execucao, abra outro terminal e rode:
+Com a API Java iniciada, você pode testar o endpoint em outro terminal:
 
 ```powershell
-$body = @{ quantidadeCozinheiros = 3 } | ConvertTo-Json
+$body = @{ quantidadeCozinheiros = 3; algoritmo = "FCFS"; chapaCompartilhada = $false; escalaTempo = 1.0 } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:8080/api/simulacoes" -Method Post -ContentType "application/json" -Body $body
 ```
 
-Se estiver funcionando, o terminal retornara um resultado JSON com a quantidade de cozinheiros, pedidos processados e tempos da simulacao.
+## Comandos úteis
 
-## 7. Parar o projeto
+Na pasta `dashboard`:
 
-Em cada terminal que estiver executando um processo, pressione `Ctrl+C`.
+```powershell
+npm run dev     # inicia o ambiente de desenvolvimento
+npm run build   # valida o build do frontend
+npm run preview # visualiza o build final
+```
 
 ## Problemas comuns
 
-### `npm` nao e reconhecido ou foi bloqueado
+### Porta `8080` ocupada
 
-Use `npm.cmd` nos comandos:
+Feche o processo que está usando a porta 8080 ou altere o valor da constante `PORTA` em `src/server/SimulacaoApiServer.java`.
+
+### Dashboard abre, mas a simulação falha
+
+Confirme se a API Java ainda está aberta e se a mensagem de inicialização apareceu no terminal.
+
+### `npm` não é reconhecido
+
+Use `npm.cmd` no PowerShell:
 
 ```powershell
 npm.cmd install
 npm.cmd run dev
 ```
 
-### A porta 8080 ja esta em uso
+## Observações finais
 
-Encerre o programa que esta usando a porta e tente iniciar a API novamente. O dashboard esta configurado para procurar a API em `http://localhost:8080`.
-
-### O dashboard abre, mas a simulacao falha
-
-Confirme se o terminal da API ainda esta aberto e se mostrou a mensagem de inicializacao. A API Java precisa estar rodando antes de executar uma simulacao no navegador.
-
-## Comandos uteis do dashboard
-
-Dentro da pasta `dashboard`:
-
-```powershell
-npm.cmd run dev      # inicia o ambiente de desenvolvimento
-npm.cmd run build    # verifica tipos e gera o build de producao
-npm.cmd run preview  # visualiza o build gerado
-```
+Este projeto foi pensado para demonstrar escalonamento de processos em um cenário de concorrência real, com métricas e comparação entre cenários em tempo de execução. A simulação é executada de fato no backend em Java, e não por dados fictícios no frontend.

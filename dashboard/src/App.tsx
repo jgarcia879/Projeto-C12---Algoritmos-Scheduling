@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, Clock3, Gauge, ListChecks } from 'lucide-react'
+import { AlertCircle, CheckCheck, CheckCircle2, Clock3, Gauge, ListChecks, Timer } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Header } from './components/Header'
 import { CookCards } from './components/CookCards'
@@ -70,10 +70,12 @@ function App() {
 
             {result ? (
               <>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <MetricCard label="Tempo total" value={`${result.duracaoSegundos.toFixed(2)}s`} detail="Duração real da execução" icon={Clock3} accent="red" />
                   <MetricCard label="Mínimo teórico" value={`${result.tempoMinimoTeorico.toFixed(2)}s`} detail="Pedido mais demorado da fila" icon={Gauge} accent="gold" />
                   <MetricCard label="Pedidos processados" value={`${result.pedidosProcessados} / ${result.quantidadePedidos}`} detail="Nenhum pedido ficou para trás" icon={ListChecks} accent="green" />
+                  <MetricCard label="Espera total na fila" value={`${result.esperaTotalSegundos.toFixed(2)}s`} detail="Soma da espera de todos os pedidos até o preparo começar" icon={CheckCheck} accent="gold" />
+                  <MetricCard label="Espera média por pedido" value={`${result.esperaMediaSegundos.toFixed(2)}s`} detail="Tempo médio na fila antes do preparo começar" icon={Timer} accent="red" />
                   <MetricCard label="Diferença" value={`${result.diferencaPercentual.toFixed(2)}%`} detail={`${result.diferencaSegundos.toFixed(2)}s acima do mínimo`} icon={CheckCircle2} accent="green" />
                 </div>
                 <PerformanceStatus result={result} />

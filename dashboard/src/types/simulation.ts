@@ -34,6 +34,8 @@ export interface SimulationResult {
   quantidadePedidos: number
   pedidosProcessados: number
   duracaoSegundos: number
+  esperaTotalSegundos: number
+  esperaMediaSegundos: number
   tempoMinimoTeorico: number
   diferencaSegundos: number
   diferencaPercentual: number

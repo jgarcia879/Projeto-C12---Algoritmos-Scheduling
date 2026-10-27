@@ -22,7 +22,7 @@ public class SimulacaoApiServer {
     private static final Pattern COZINHEIROS_PATTERN =
             Pattern.compile("\"quantidadeCozinheiros\"\\s*:\\s*(\\d+)");
 
-    private static final Pattern ALGORITMO_PATTERN = Pattern.compile("\"algoritmo\"\\s*:\\s*\"(FCFS|SJF|PS)\"");
+    private static final Pattern ALGORITMO_PATTERN = Pattern.compile("\"algoritmo\"\\s*:\\s*\"([A-Za-z]+)\"");
     private static final Pattern CHAPA_PATTERN = Pattern.compile("\"chapaCompartilhada\"\\s*:\\s*(true|false)");
     private static final Pattern ESCALA_TEMPO_PATTERN = Pattern.compile("\"escalaTempo\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)");
 
@@ -68,21 +68,22 @@ public class SimulacaoApiServer {
             int quantidadeCozinheiros = Integer.parseInt(matcher.group(1));
             Matcher alg = ALGORITMO_PATTERN.matcher(corpo);
             Matcher chapa = CHAPA_PATTERN.matcher(corpo);
-            String algoritmo = alg.find() ? alg.group(1) : "FCFS";
+            String algoritmo = alg.find() ? alg.group(1).trim().toUpperCase(Locale.ROOT) : "FCFS";
             boolean compartilhar = chapa.find() && Boolean.parseBoolean(chapa.group(1));
             Matcher escala = ESCALA_TEMPO_PATTERN.matcher(corpo);
             double escalaTempo = escala.find() ? Double.parseDouble(escala.group(1)) : 1.0;
             List<Pedido> pedidos = PedidosPadrao.criar();
-                exchange.getResponseHeaders().set("Content-Type", "application/x-ndjson; charset=UTF-8");
-                exchange.sendResponseHeaders(200, 0);
-                try (OutputStream output = exchange.getResponseBody()) {
+
+            exchange.getResponseHeaders().set("Content-Type", "application/x-ndjson; charset=UTF-8");
+            exchange.sendResponseHeaders(200, 0);
+            try (OutputStream output = exchange.getResponseBody()) {
                 Object monitor = new Object();
                 ResultadoSimulacao resultado = new Simulacao(pedidos, quantidadeCozinheiros, algoritmo, compartilhar, escalaTempo)
-                    .executar(evento -> escreverEvento(output, monitor, evento));
+                        .executar(evento -> escreverEvento(output, monitor, evento));
                 escreverLinha(output, monitor,
-                    "{\"tipo\":\"SIMULACAO_CONCLUIDA\",\"resultado\":"
-                        + paraJson(resultado) + "}");
-                }
+                        "{\"tipo\":\"SIMULACAO_CONCLUIDA\",\"resultado\":"
+                                + paraJson(resultado) + "}");
+            }
         } catch (IllegalArgumentException e) {
             responderJson(exchange, 400, "{\"erro\":\"" + escapar(e.getMessage()) + "\"}");
         } catch (InterruptedException e) {
@@ -97,10 +98,14 @@ public class SimulacaoApiServer {
         return String.format(Locale.US,
                 "{\"quantidadeCozinheiros\":%d,\"quantidadePedidos\":%d,"
                         + "\"pedidosProcessados\":%d,\"algoritmo\":\"%s\",\"duracaoSegundos\":%.4f,"
+                        + "\"esperaTotalSegundos\":%.4f,"
+                        + "\"esperaMediaSegundos\":%.4f,"
                         + "\"tempoMinimoTeorico\":%.4f,\"diferencaSegundos\":%.4f,"
                         + "\"diferencaPercentual\":%.4f}",
                 resultado.getQuantidadeCozinheiros(), resultado.getQuantidadePedidos(),
                 resultado.getPedidosProcessados(), resultado.getAlgoritmo(), resultado.getDuracaoSegundos(),
+                resultado.getEsperaTotalSegundos(),
+                resultado.getEsperaMediaSegundos(),
                 resultado.getTempoMinimoTeoricoSegundos(), resultado.getDiferencaSegundos(),
                 resultado.getDiferencaPercentual());
     }

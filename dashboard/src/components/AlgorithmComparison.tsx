@@ -17,8 +17,14 @@ function AlgorithmComparisonScenario({ history, sharedGrill }: { history: Simula
     const bestRun = runs.reduce<SimulationResult | null>((best, current) => !best || current.duracaoSegundos < best.duracaoSegundos ? current : best, null)
     const averageDuration = runs.length ? runs.reduce((sum, item) => sum + item.duracaoSegundos, 0) / runs.length : null
     const averageGap = runs.length ? runs.reduce((sum, item) => sum + item.diferencaPercentual, 0) / runs.length : null
+    const runsWithWait = runs.filter((item) => Number.isFinite(item.esperaTotalSegundos))
+    const averageWait = runsWithWait.length ? runsWithWait.reduce((sum, item) => sum + item.esperaTotalSegundos, 0) / runsWithWait.length : null
+    const runsWithAverageWait = runs.filter((item) => Number.isFinite(item.esperaMediaSegundos))
+    const averageWaitPerOrder = runsWithAverageWait.length
+      ? runsWithAverageWait.reduce((sum, item) => sum + item.esperaMediaSegundos, 0) / runsWithAverageWait.length
+      : null
 
-    return { ...algorithm, runs, bestRun, averageDuration, averageGap, pairedWins: 0 }
+    return { ...algorithm, runs, bestRun, averageDuration, averageGap, averageWait, averageWaitPerOrder, pairedWins: 0 }
   })
 
   const matchedConfigurations = Array.from(new Set(comparableHistory.map((item) => item.quantidadeCozinheiros)))
@@ -75,6 +81,8 @@ function AlgorithmComparisonScenario({ history, sharedGrill }: { history: Simula
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div><span className="metric-label">Tempo médio</span><span className="metric-value">{summary.averageDuration!.toFixed(2)}s</span></div>
               <div><span className="metric-label">Acima do mínimo</span><span className="metric-value">{summary.averageGap!.toFixed(1)}%</span></div>
+              <div><span className="metric-label">Espera total média</span><span className="metric-value">{summary.averageWait === null ? '—' : `${summary.averageWait.toFixed(2)}s`}</span></div>
+              <div><span className="metric-label">Espera média por pedido</span><span className="metric-value">{summary.averageWaitPerOrder === null ? '—' : `${summary.averageWaitPerOrder.toFixed(2)}s`}</span></div>
             </div>
             <p className="mt-4 border-t border-[#493537] pt-3 text-[11px] leading-5 text-[#b9adad]">
               Melhor registro: <strong className="text-[#f0e9df]">{summary.bestRun!.duracaoSegundos.toFixed(2)}s</strong> com {summary.bestRun!.quantidadeCozinheiros} cozinheiro(s) · {summary.runs.length} execução(ões)
